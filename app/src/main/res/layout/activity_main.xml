@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -26,6 +27,17 @@
             android:text="@string/load_subtitle"
             android:textColor="@color/muted"
             android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_next_seq"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@color/field"
+            android:padding="12dp"
+            android:textColor="@color/primary_dark"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <!-- resume banner -->
         <LinearLayout
@@ -70,15 +82,6 @@
                     android:text="@string/discard" />
             </LinearLayout>
         </LinearLayout>
-
-        <TextView style="@style/FieldLabel" android:text="@string/sr_no" />
-
-        <EditText
-            android:id="@+id/et_seq"
-            style="@style/Field"
-            android:hint="@string/sr_hint"
-            android:inputType="number"
-            android:autofillHints="" />
 
         <TextView style="@style/FieldLabel" android:text="@string/count" />
 
@@ -151,6 +154,10 @@
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
             android:text="@string/past_loads" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12dp" />
 
     </LinearLayout>
 </ScrollView>

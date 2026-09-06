@@ -46,6 +46,7 @@ public class EntryActivity extends AppCompatActivity implements BagAdapter.Liste
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entry);
+        WindowPadding.apply(findViewById(R.id.root));
 
         session = LoadStore.get(this, getIntent().getStringExtra(EXTRA_LOAD_ID));
         if (session == null || session.totalBags <= 0) {

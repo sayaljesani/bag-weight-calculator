@@ -7,9 +7,10 @@ to Downloads and shareable through WhatsApp / Gmail / Drive.
 ## What it does
 
 **Screen 1 — Load details (entered once)**
-Sr. No · Count · Lot No · Vehicle No · No of Bags · Tare weight per bag · Date.
-The Sr. No is filled in automatically — one more than the highest used in the
-current year, so numbering restarts at 1 each January — and can be overwritten.
+Count · Lot No · Vehicle No · No of Bags · Tare weight per bag · Date — all
+required. The sheet number is not typed: the app assigns it (one more than the
+highest used this year, restarting at 1 each January) and shows which number the
+load will get before you start.
 
 **Screen 2 — Weighing**
 One gross weight per bag. Net (`gross − tare`) is shown live as you type and
@@ -34,6 +35,9 @@ send it (WhatsApp, Drive, email); *Restore* reads such a file back on a new
 phone. Restoring merges by load: loads the phone has not seen are added, and a
 load that exists on both is replaced only if the backup's copy is newer, so
 restoring twice is harmless.
+
+Every screen pads itself for the status bar, navigation bar and keyboard, so
+nothing is cut off on Android 15's edge-to-edge display.
 
 ## The generated sheet
 

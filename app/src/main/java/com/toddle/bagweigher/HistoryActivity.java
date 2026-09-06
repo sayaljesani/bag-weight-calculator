@@ -31,6 +31,7 @@ public class HistoryActivity extends AppCompatActivity implements LoadAdapter.Li
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
+        WindowPadding.apply(findViewById(R.id.root));
 
         tvEmpty = (TextView) findViewById(R.id.tv_empty);
         RecyclerView list = (RecyclerView) findViewById(R.id.list_loads);

@@ -20,7 +20,8 @@ import java.util.Locale;
  */
 public class MainActivity extends AppCompatActivity {
 
-    private EditText etSeq, etCount, etLot, etVehicle, etBags, etTare, etDate;
+    private EditText etCount, etLot, etVehicle, etBags, etTare, etDate;
+    private int nextSeq;
 
     public static int thisYear() {
         return java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
@@ -34,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        WindowPadding.apply(findViewById(R.id.root));
 
-        etSeq = (EditText) findViewById(R.id.et_seq);
         etCount = (EditText) findViewById(R.id.et_count);
         etLot = (EditText) findViewById(R.id.et_lot);
         etVehicle = (EditText) findViewById(R.id.et_vehicle);
@@ -43,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
         etTare = (EditText) findViewById(R.id.et_tare);
         etDate = (EditText) findViewById(R.id.et_date);
         etDate.setText(today());
-        etSeq.setText(String.valueOf(LoadStore.nextSeqNo(this, thisYear())));
 
         findViewById(R.id.btn_start).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,7 +63,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        showNextSeq();
         updateResumeBanner();
+    }
+
+    /** the sheet number this load will get — assigned by the app, not typed */
+    private void showNextSeq() {
+        nextSeq = LoadStore.nextSeqNo(this, thisYear());
+        ((TextView) findViewById(R.id.tv_next_seq))
+                .setText(getString(R.string.next_sheet_no, Integer.valueOf(nextSeq)));
     }
 
     private void updateResumeBanner() {
@@ -104,12 +112,31 @@ public class MainActivity extends AppCompatActivity {
 
     private void startNewLoad() {
         String count = etCount.getText().toString().trim();
+        String lot = etLot.getText().toString().trim();
+        String vehicle = etVehicle.getText().toString().trim();
         String bagsText = etBags.getText().toString().trim();
         String tareText = etTare.getText().toString().trim();
+        String date = etDate.getText().toString().trim();
 
+        // every field has to be filled in
         if (TextUtils.isEmpty(count)) {
             etCount.setError(getString(R.string.required));
             etCount.requestFocus();
+            return;
+        }
+        if (TextUtils.isEmpty(lot)) {
+            etLot.setError(getString(R.string.required));
+            etLot.requestFocus();
+            return;
+        }
+        if (TextUtils.isEmpty(vehicle)) {
+            etVehicle.setError(getString(R.string.required));
+            etVehicle.requestFocus();
+            return;
+        }
+        if (TextUtils.isEmpty(date)) {
+            etDate.setError(getString(R.string.required));
+            etDate.requestFocus();
             return;
         }
         int bags;
@@ -140,16 +167,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         WeighSession s = new WeighSession();
-        try {
-            s.seqNo = Integer.parseInt(etSeq.getText().toString().trim());
-        } catch (NumberFormatException e) {
-            s.seqNo = LoadStore.nextSeqNo(this, thisYear());
-        }
+        s.seqNo = LoadStore.nextSeqNo(this, thisYear());
         s.count = count;
-        s.lotNo = etLot.getText().toString().trim();
-        s.vehicleNo = etVehicle.getText().toString().trim();
-        String date = etDate.getText().toString().trim();
-        s.dateText = TextUtils.isEmpty(date) ? today() : date;
+        s.lotNo = lot;
+        s.vehicleNo = vehicle;
+        s.dateText = date;
         s.totalBags = bags;
         s.tarePerBag = tare;
         LoadStore.save(this, s);
@@ -159,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clearForm() {
-        etSeq.setText(String.valueOf(LoadStore.nextSeqNo(this, thisYear())));
         etCount.setText("");
         etLot.setText("");
         etVehicle.setText("");

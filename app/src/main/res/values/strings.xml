@@ -3,8 +3,7 @@
     <string name="app_name">Bag Weight Calculator</string>
     <string name="load_subtitle">Enter the load details once, then weigh each bag.</string>
 
-    <string name="sr_no">Sr. No (sheet number)</string>
-    <string name="sr_hint">auto</string>
+    <string name="next_sheet_no">Sheet no. %1$d  ·  numbered automatically</string>
     <string name="count">Count</string>
     <string name="count_hint">e.g. 30</string>
     <string name="lot_no">Lot No</string>

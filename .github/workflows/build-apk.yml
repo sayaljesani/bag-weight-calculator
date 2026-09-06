@@ -1,12 +1,13 @@
 name: Build APK
 
+# Runs on every push, and whenever you press "Run workflow" in the Actions tab.
 on:
   push:
     branches: ["**"]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write        # needed to publish the APK as a release
 
 jobs:
   build:
@@ -42,6 +43,7 @@ jobs:
           echo "path=out/BagWeightCalculator-v${{ github.run_number }}.apk" >> "$GITHUB_OUTPUT"
           echo "tag=v1.0.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
 
+      # Route 1: download from the run page (arrives as a .zip)
       - name: Attach the APK to this run
         uses: actions/upload-artifact@v4
         with:
@@ -49,6 +51,7 @@ jobs:
           path: ${{ steps.apk.outputs.path }}
           if-no-files-found: error
 
+      # Route 2: a Release, so the phone can download the .apk directly
       - name: Publish a release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -56,5 +59,5 @@ jobs:
           gh release create "${{ steps.apk.outputs.tag }}" \
             "${{ steps.apk.outputs.path }}" \
             --title "Bag Weight Calculator ${{ steps.apk.outputs.tag }}" \
-            --notes "Debug build. Open this page on the phone and tap the .apk to install." \
+            --notes "Debug build from commit ${{ github.sha }}. Open this page on the phone and tap the .apk to install." \
             || gh release upload "${{ steps.apk.outputs.tag }}" "${{ steps.apk.outputs.path }}" --clobber

@@ -45,6 +45,7 @@ public class SummaryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_summary);
+        WindowPadding.apply(findViewById(R.id.root));
 
         findViewById(R.id.btn_save).setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { saveWithPermission(); }
