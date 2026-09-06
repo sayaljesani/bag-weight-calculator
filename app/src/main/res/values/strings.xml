@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bag Weight Calculator</string>
+    <string name="load_subtitle">Enter the load details once, then weigh each bag.</string>
+
+    <string name="sr_no">Sr. No (sheet number)</string>
+    <string name="sr_hint">auto</string>
+    <string name="count">Count</string>
+    <string name="count_hint">e.g. 30</string>
+    <string name="lot_no">Lot No</string>
+    <string name="lot_hint">e.g. 900</string>
+    <string name="vehicle_no">Vehicle No</string>
+    <string name="vehicle_hint">e.g. GJ 05 AB 1234</string>
+    <string name="no_of_bags">No of Bags</string>
+    <string name="bags_hint">e.g. 385</string>
+    <string name="tare_weight">Tare weight per bag</string>
+    <string name="tare_hint">e.g. 1.40</string>
+    <string name="date">Date</string>
+    <string name="date_hint">dd.MM.yyyy</string>
+    <string name="start_weighing">Start weighing</string>
+
+    <string name="required">Required</string>
+    <string name="invalid_bags">Enter a number between 1 and 100000</string>
+    <string name="invalid_tare">Tare cannot be negative</string>
+    <string name="discard_first">Finish or discard the load in progress first</string>
+
+    <string name="resume_message">Load in progress: %1$s — %2$d of %3$d bags weighed.</string>
+    <string name="resume">Resume</string>
+    <string name="discard">Discard</string>
+    <string name="discard_title">Discard load?</string>
+    <string name="discard_message">The weights entered for this load will be deleted.</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+
+    <string name="entry_header">%1$s · Lot %2$s · %3$s</string>
+    <string name="bag_x_of_y">Bag %1$d of %2$d</string>
+    <string name="gross_weight">Gross weight of this bag</string>
+    <string name="gross_hint">0.00</string>
+    <string name="add">Add</string>
+    <string name="preview_net">Net = %1$s − %2$s = %3$s</string>
+    <string name="col_bag">BAG</string>
+    <string name="col_gross">GROSS</string>
+    <string name="col_net">NET</string>
+    <string name="undo_last">Undo last</string>
+    <string name="generate_sheet">Generate sheet</string>
+    <string name="finish_early">Finish early</string>
+    <string name="totals_line">Weighed %1$d/%2$d · Gross %3$s · Tare %4$s · Net %5$s</string>
+
+    <string name="enter_weight">Enter a weight</string>
+    <string name="invalid_weight">Enter a valid weight</string>
+    <string name="below_tare">Careful: that gross weight is below the tare</string>
+    <string name="all_bags_done">All bags weighed</string>
+    <string name="edit_bag">Bag %1$d</string>
+    <string name="no_session">No load in progress</string>
+    <string name="nothing_to_export">Weigh at least one bag first</string>
+    <string name="incomplete_title">Load not finished</string>
+    <string name="incomplete_message">Only %1$d of %2$d bags are weighed. Generate the sheet anyway?</string>
+    <string name="continue_anyway">Generate anyway</string>
+
+    <string name="sum_bags">%1$d of %2$d bags weighed  ·  %3$s</string>
+    <string name="total_gross">Total gross weight</string>
+    <string name="total_tare">Total tare weight</string>
+    <string name="total_net">Total net weight</string>
+    <string name="file_name_label">File name</string>
+    <string name="save_downloads">Save to Downloads</string>
+    <string name="share">Share</string>
+    <string name="share_sheet">Share weighment sheet</string>
+    <string name="back_to_entry">Continue editing this load</string>
+    <string name="new_load">Start a new load</string>
+    <string name="new_load_title">Start a new load?</string>
+    <string name="new_load_message">Save or share the sheet first — this clears the current load.</string>
+    <string name="saved_to">Saved to %1$s</string>
+    <string name="save_failed">Could not write to Downloads</string>
+    <string name="permission_needed">Storage permission is needed to save the file</string>
+    <string name="generate_failed">Could not generate the sheet: %1$s</string>
+
+    <!-- past loads -->
+    <string name="past_loads">Past loads</string>
+    <string name="past_loads_sub">Every load is kept on this phone. Tap one to open, edit or re-send it.</string>
+    <string name="no_loads_yet">No loads saved yet.</string>
+    <string name="status_completed">COMPLETED</string>
+    <string name="status_in_progress">IN PROGRESS</string>
+    <string name="load_meta">%1$s  ·  %2$d of %3$d bags  ·  tare %4$s</string>
+    <string name="load_net">Net %1$s  (gross %2$s)</string>
+    <string name="cross">\u2715</string>
+    <string name="back">Back</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="duplicated">New load with the same details</string>
+    <string name="delete_load_title">Delete this load?</string>
+    <string name="delete_load_message">%1$s\n%2$s\n\nThe .xlsx files you already downloaded are not affected.</string>
+    <string name="load_deleted">Load deleted</string>
+
+    <!-- backup -->
+    <string name="backup_all">Backup all</string>
+    <string name="restore">Restore</string>
+    <string name="backup_hint">Backup writes one file holding every load — keep it in Drive or send it to yourself, and Restore reads it back on a new phone.</string>
+    <string name="backup_saved">%1$d loads backed up to %2$s</string>
+    <string name="share_backup">Send the backup file</string>
+    <string name="pick_backup">Choose a backup file</string>
+    <string name="no_file_picker">No file picker on this phone</string>
+    <string name="restore_failed">That file could not be read as a backup</string>
+    <string name="restored">Restored: %1$d new, %2$d updated</string>
+    <string name="nothing_to_backup">Nothing to back up yet</string>
+</resources>

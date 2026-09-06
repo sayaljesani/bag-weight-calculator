@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#1E6F9F</color>
+    <color name="primary_dark">#14506F</color>
+    <color name="accent">#C0504D</color>
+    <color name="bg">#F2F5F7</color>
+    <color name="field">#EDF3F6</color>
+    <color name="banner">#DCEEF6</color>
+    <color name="tableHead">#DCE6EC</color>
+    <color name="text">#1B2A33</color>
+    <color name="muted">#5C7180</color>
+    <color name="chipOpen">#FDE9D9</color>
+</resources>
