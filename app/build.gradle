@@ -2,6 +2,16 @@ plugins {
     id 'com.android.application'
 }
 
+// One fixed signing key, kept in the repo, so every build — here or on GitHub —
+// produces an APK that Android accepts as an update of the last one. Without it
+// each build machine invents a throwaway key and the phone refuses to install
+// over the existing app.
+def signingKey = rootProject.file('signing/bagweigher.jks')
+
+// Each GitHub build gets a higher version code than the one before, so the
+// phone always sees a new APK as newer. Local builds fall back to 1.
+def buildNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1") as int
+
 android {
     namespace 'com.toddle.bagweigher'
     compileSdk 35
@@ -10,14 +20,33 @@ android {
         applicationId "com.toddle.bagweigher"
         minSdk 24
         targetSdk 35
-        versionCode 2
-        versionName "1.1"
+        versionCode 100 + buildNumber
+        versionName "1.2"
+    }
+
+    signingConfigs {
+        shared {
+            if (signingKey.exists()) {
+                storeFile signingKey
+                storePassword 'bagweigher'
+                keyAlias 'bagweigher'
+                keyPassword 'bagweigher'
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            if (signingKey.exists()) {
+                signingConfig signingConfigs.shared
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingKey.exists()) {
+                signingConfig signingConfigs.shared
+            }
         }
     }
 

@@ -99,6 +99,19 @@ To sideload the debug APK: copy `app-debug.apk` to the phone, tap it, and allow
 
 For a Play Store build, create a signing key and run `./gradlew assembleRelease`.
 
+### Signing
+
+`signing/bagweigher.jks` is a fixed key every build uses (password `bagweigher`,
+alias `bagweigher`), so each new APK installs over the last one and keeps the
+app's saved loads. Without it, every build machine invents its own key and
+Android rejects the update. `versionCode` comes from the GitHub run number, so
+each build is numbered higher than the one before.
+
+The key sits in the repository, which means anyone who can see the repository
+can sign an APK with it. That is a fair trade for an in-house app handed round
+by link; if this ever goes on the Play Store, move the key into a GitHub secret
+and have the workflow write it out at build time instead.
+
 ### Versions used
 
 | | |
