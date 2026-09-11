@@ -73,6 +73,14 @@ The workbook is written by `xlsx/XlsxWriter.java` + `xlsx/BagSheetGenerator.java
 which use nothing but `java.util.zip` — no Apache POI, no third-party library,
 nothing to keep up to date.
 
+## iPhone (and any phone, without installing an APK)
+
+`docs/` holds the same app as a web page, published by GitHub Pages at
+https://sayaljesani.github.io/bag-weight-calculator/ — open it in Safari on an
+iPhone and *Add to Home Screen* and it runs full screen and offline, which is
+the only way to put this on an iPhone without a paid Apple Developer account.
+See [`docs/README.md`](docs/README.md) for turning Pages on and installing.
+
 ## Building the APK
 
 **No computer? Build it on GitHub** — upload the project to a free GitHub

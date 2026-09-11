@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bag Weight Calculator</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14506F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bag Weight">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<style>
+  :root{
+    --primary:#1E6F9F; --primary-dark:#14506F; --accent:#C0504D;
+    --bg:#F2F5F7; --card:#FFFFFF; --field:#EDF3F6; --banner:#DCEEF6;
+    --line:#DCE6EC; --text:#1B2A33; --muted:#5C7180;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+       background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+  .screen{display:none;min-height:100vh;flex-direction:column;
+          padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .screen.active{display:flex}
+  header{background:var(--primary-dark);color:#fff;padding:14px 16px;
+         padding-top:calc(14px + env(safe-area-inset-top))}
+  header .line1{font-size:15px;font-weight:700}
+  header .line2{font-size:20px;font-weight:700;color:#CFE8F3;margin-top:2px}
+  .pad{padding:20px 16px;padding-top:calc(20px + env(safe-area-inset-top))}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+  label{display:block;color:var(--muted);font-size:13px;margin:14px 0 4px}
+  input{width:100%;height:52px;border:1px solid var(--line);background:var(--field);border-radius:8px;
+        padding:0 12px;font-size:18px;color:var(--text)}
+  input:focus{outline:2px solid var(--primary);background:#fff}
+  button{font-family:inherit;font-size:16px;border:0;border-radius:8px;padding:14px 16px;cursor:pointer}
+  .primary{background:var(--primary);color:#fff;font-weight:700;width:100%}
+  .accent{background:var(--accent);color:#fff;font-weight:700}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
+  .row{display:flex;gap:10px}
+  .row > *{flex:1}
+  .banner{background:var(--banner);border-radius:8px;padding:14px;margin-bottom:18px}
+  .card{background:var(--card);border-radius:10px;padding:16px;border:1px solid var(--line)}
+  .entry{background:#fff;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .entry .big{display:flex;gap:10px}
+  #gross{height:64px;font-size:28px;font-weight:700}
+  #addBtn{width:110px;background:var(--primary);color:#fff;font-weight:700;font-size:17px}
+  .preview{color:var(--primary-dark);font-size:15px;margin-top:8px;min-height:22px}
+  .thead,.trow{display:flex;padding:9px 16px}
+  .thead{background:var(--line);font-size:12px;font-weight:700;letter-spacing:.03em}
+  .trow{border-bottom:1px solid #F0F3F5;background:#fff}
+  .trow:active{background:#EAF3F8}
+  .c1{flex:1}.c2{flex:1.4;text-align:right}.c3{flex:1.4;text-align:right;font-weight:700;color:var(--primary-dark)}
+  #list{flex:1;overflow-y:auto;background:#fff;-webkit-overflow-scrolling:touch}
+  .totals{background:var(--banner);padding:11px 16px;font-size:14px}
+  .actions{padding:12px 16px;display:flex;gap:10px;background:var(--bg);
+           padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .actions .ghost{flex:1}.actions .accent{flex:1.4}
+  .sumrow{display:flex;align-items:center;padding:7px 0}
+  .sumrow span:first-child{flex:1;color:var(--muted)}
+  .sumrow span:last-child{font-size:18px;font-weight:700}
+  .net span:last-child{font-size:23px;color:var(--accent)}
+  hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+  .fname{font-weight:700;word-break:break-all}
+  .install{background:#14506F;color:#fff;border-radius:10px;padding:13px 15px;margin-bottom:18px;
+           font-size:14px;line-height:1.5;display:none}
+  .install b{color:#CFE8F3}
+  .install button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:7px;
+                  padding:7px 12px;font-size:13px;margin-top:9px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#1B2A33;color:#fff;
+         padding:12px 18px;border-radius:24px;font-size:14px;opacity:0;pointer-events:none;
+         transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
+  .toast.show{opacity:.96}
+  .err{color:var(--accent);font-size:13px;min-height:18px}
+  .loadrow{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;
+           margin-bottom:10px;cursor:pointer;position:relative}
+  .rowdel{position:absolute;top:8px;right:6px;background:transparent;border:0;color:var(--muted);
+          font-size:17px;line-height:1;padding:8px 12px;border-radius:8px}
+  .rowdel:active{background:var(--line)}
+  .loadrow:active{background:#EAF3F8}
+  .loadrow .t{font-weight:700;font-size:16px;color:var(--primary-dark)}
+  .loadrow .m{color:var(--muted);font-size:13px;margin-top:3px}
+  .loadrow .n{font-weight:700;margin-top:6px}
+  .chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 8px;
+        border-radius:20px;margin-left:6px;vertical-align:1px}
+  .chip.open{background:#FDE9D9;color:#8A4B2A}
+  .chip.done{background:#DCEEF6;color:var(--primary-dark)}
+  .empty{color:var(--muted);text-align:center;padding:40px 10px}
+  dialog{border:0;border-radius:12px;padding:20px;width:88%;max-width:340px}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+</style>
+</head>
+<body>
+
+<!-- ───────────── load details ───────────── -->
+<section id="screen-load" class="screen active">
+  <div class="pad">
+    <h1>Bag Weight Calculator</h1>
+    <p class="sub">Enter the load details once, then weigh each bag.</p>
+
+    <div id="installHint" class="install">
+      <b>Add this to your home screen</b><br>
+      Tap the Share button in Safari, then <b>Add to Home Screen</b>. It then opens like an app
+      and works without internet.
+      <br><button id="installDismiss">Got it</button>
+    </div>
+
+    <div id="nextSeq" class="banner" style="font-weight:700;color:var(--primary-dark)"></div>
+
+    <div id="resumeBanner" class="banner" style="display:none">
+      <div id="resumeText"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="ghost" id="resumeBtn">Resume</button>
+        <button class="ghost" id="discardBtn">Discard</button>
+      </div>
+    </div>
+
+    <label for="count">Count</label>
+    <input id="count" placeholder="e.g. 30" autocapitalize="characters">
+
+    <label for="lot">Lot No</label>
+    <input id="lot" placeholder="e.g. 900" autocapitalize="characters">
+
+    <label for="vehicle">Vehicle No</label>
+    <input id="vehicle" placeholder="e.g. GJ 05 AB 1234" autocapitalize="characters">
+
+    <label for="bags">No of Bags</label>
+    <input id="bags" type="number" inputmode="numeric" placeholder="e.g. 385">
+
+    <label for="tare">Tare weight per bag</label>
+    <input id="tare" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 1.40">
+
+    <label for="date">Date</label>
+    <input id="date" placeholder="dd.MM.yyyy">
+
+    <p class="err" id="loadErr"></p>
+    <button class="primary" id="startBtn">Start weighing</button>
+    <button class="ghost" id="historyBtn" style="margin-top:10px;width:100%">Past loads</button>
+  </div>
+</section>
+
+<!-- ───────────── weighing ───────────── -->
+<section id="screen-entry" class="screen">
+  <header>
+    <div class="line1" id="entryHeader"></div>
+    <div class="line2" id="entryBagNo"></div>
+  </header>
+
+  <div class="entry">
+    <label for="gross" style="margin-top:0">Gross weight of this bag</label>
+    <div class="big">
+      <input id="gross" type="number" inputmode="decimal" step="0.01" placeholder="0.00" enterkeyhint="done">
+      <button id="addBtn">Add</button>
+    </div>
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <div class="thead"><span class="c1">BAG</span><span class="c2">GROSS</span><span class="c3">NET</span></div>
+  <div id="list"></div>
+
+  <div class="totals" id="entryTotals"></div>
+  <div class="actions">
+    <button class="ghost" id="undoBtn">Undo last</button>
+    <button class="accent" id="finishBtn">Generate sheet</button>
+  </div>
+</section>
+
+<!-- ───────────── summary ───────────── -->
+<section id="screen-summary" class="screen">
+  <div class="pad">
+    <h1 id="sumHeader" style="font-size:19px;color:var(--primary-dark)"></h1>
+    <p class="sub" id="sumBags"></p>
+
+    <div class="card">
+      <div class="sumrow"><span>Total gross weight</span><span id="sumGross"></span></div>
+      <div class="sumrow"><span>Total tare weight</span><span id="sumTare"></span></div>
+      <hr>
+      <div class="sumrow net"><span>Total net weight</span><span id="sumNet"></span></div>
+    </div>
+
+    <label style="margin-top:20px">File name</label>
+    <div class="fname" id="fileName"></div>
+
+    <button class="primary" id="downloadBtn" style="margin-top:20px">Download .xlsx</button>
+    <button class="accent" id="shareBtn" style="margin-top:10px;width:100%">Share</button>
+    <button class="ghost" id="backBtn" style="margin-top:18px;width:100%">Continue editing this load</button>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost" id="duplicateBtn">Duplicate</button>
+      <button class="ghost" id="deleteBtn" style="color:var(--accent)">Delete</button>
+    </div>
+    <button class="ghost" id="toHistoryBtn" style="margin-top:8px;width:100%">Past loads</button>
+    <button class="ghost" id="newLoadBtn" style="margin-top:8px;width:100%">Start a new load</button>
+  </div>
+</section>
+
+<!-- ───────────── history ───────────── -->
+<section id="screen-history" class="screen">
+  <div class="pad">
+    <h1 style="font-size:22px">Past loads</h1>
+    <p class="sub">Every load is kept on this phone. Tap one to open, edit or re-send it.</p>
+
+    <div id="historyList"></div>
+
+    <div class="row" style="margin-top:18px">
+      <button class="ghost" id="backupBtn">Backup all</button>
+      <button class="ghost" id="restoreBtn">Restore</button>
+    </div>
+    <input id="restoreFile" type="file" accept="application/json,.json" style="display:none">
+    <p class="sub" style="margin-top:10px">Backup writes one file holding every load — keep it in Drive
+      or send it to yourself, and Restore reads it back on a new phone.</p>
+
+    <button class="ghost" id="historyHomeBtn" style="margin-top:10px;width:100%">Back</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<dialog id="editDlg">
+  <div style="font-weight:700;margin-bottom:10px" id="editTitle"></div>
+  <input id="editInput" type="number" inputmode="decimal" step="0.01">
+  <div class="row" style="margin-top:14px">
+    <button class="ghost" id="editCancel">Cancel</button>
+    <button class="ghost" id="editDelete" style="color:var(--accent)">Delete</button>
+    <button class="accent" id="editSave">Save</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+
+/* ══════════════════════ minimal xlsx writer ══════════════════════
+   Same output as the Android app's XlsxWriter: no libraries, plain ZIP + OOXML. */
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+/** ZIP archive with stored (uncompressed) entries — valid for .xlsx */
+function zipFiles(entries) {
+  const enc = new TextEncoder();
+  const chunks = [];
+  const central = [];
+  let offset = 0;
+
+  const u16 = v => { const b = new Uint8Array(2); b[0] = v & 255; b[1] = (v >> 8) & 255; return b; };
+  const u32 = v => { const b = new Uint8Array(4); b[0] = v & 255; b[1] = (v >>> 8) & 255; b[2] = (v >>> 16) & 255; b[3] = (v >>> 24) & 255; return b; };
+
+  for (const e of entries) {
+    const nameBytes = enc.encode(e.name);
+    const data = e.bytes ? e.bytes : enc.encode(e.content);
+    const crc = crc32(data);
+
+    const local = [u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0),
+                   u32(crc), u32(data.length), u32(data.length),
+                   u16(nameBytes.length), u16(0), nameBytes, data];
+    let localSize = 0;
+    for (const c of local) { chunks.push(c); localSize += c.length; }
+
+    central.push([u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(0), u16(0),
+                  u32(crc), u32(data.length), u32(data.length),
+                  u16(nameBytes.length), u16(0), u16(0), u16(0), u16(0), u32(0),
+                  u32(offset), nameBytes]);
+    offset += localSize;
+  }
+
+  let cdSize = 0;
+  const cdStart = offset;
+  for (const cd of central) for (const c of cd) { chunks.push(c); cdSize += c.length; }
+
+  for (const c of [u32(0x06054b50), u16(0), u16(0), u16(entries.length), u16(entries.length),
+                   u32(cdSize), u32(cdStart), u16(0)]) chunks.push(c);
+
+  let total = 0;
+  for (const c of chunks) total += c.length;
+  const out = new Uint8Array(total);
+  let p = 0;
+  for (const c of chunks) { out.set(c, p); p += c.length; }
+  return out;
+}
+
+const escXml = s => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+
+const colName = c => { let s = "", n = c; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = (n - 1) / 26 | 0; } return s; };
+const ref = (r, c) => colName(c) + r;
+const numOut = v => isFinite(v) ? String(Math.round(v * 1e6) / 1e6) : "0";
+
+class StyleTable {
+  constructor() {
+    this.fonts = new Map(); this.fontXml = [];
+    this.borders = new Map(); this.borderXml = [];
+    this.fills = new Map();
+    this.fillXml = ['<fill><patternFill patternType="none"/></fill>',
+                    '<fill><patternFill patternType="gray125"/></fill>'];
+    this.xfs = new Map(); this.xfDefs = []; this.xfAlign = [];
+    this.font(false, 11, "Calibri", null);
+    this.border(null, null, null, null);
+    this.xfs.set("default", 0); this.xfDefs.push([0, 0, 0, 0]); this.xfAlign.push(null);
+  }
+  font(bold, size, name, color) {
+    const key = bold + "|" + size + "|" + name + "|" + color;
+    if (this.fonts.has(key)) return this.fonts.get(key);
+    const id = this.fontXml.length;
+    this.fontXml.push('<font>' + (bold ? '<b/>' : '') + '<sz val="' + size + '"/>'
+      + (color ? '<color rgb="FF' + color + '"/>' : '<color theme="1"/>')
+      + '<name val="' + escXml(name) + '"/></font>');
+    this.fonts.set(key, id);
+    return id;
+  }
+  border(l, r, t, b) {
+    const key = l + "|" + r + "|" + t + "|" + b;
+    if (this.borders.has(key)) return this.borders.get(key);
+    const side = (tag, st) => st ? '<' + tag + ' style="' + st + '"><color indexed="64"/></' + tag + '>' : '<' + tag + '/>';
+    const id = this.borderXml.length;
+    this.borderXml.push('<border>' + side("left", l) + side("right", r) + side("top", t) + side("bottom", b) + '<diagonal/></border>');
+    this.borders.set(key, id);
+    return id;
+  }
+  fill(rgb) {
+    if (!rgb) return 0;
+    if (this.fills.has(rgb)) return this.fills.get(rgb);
+    const id = this.fillXml.length;
+    this.fillXml.push('<fill><patternFill patternType="solid"><fgColor rgb="FF' + rgb + '"/><bgColor indexed="64"/></patternFill></fill>');
+    this.fills.set(rgb, id);
+    return id;
+  }
+  idFor(s) {
+    const key = [s.bold, s.size, s.name, s.color, s.dec, s.align, s.l, s.r, s.t, s.b, s.bg].join("|");
+    if (this.xfs.has(key)) return this.xfs.get(key);
+    const id = this.xfDefs.length;
+    this.xfDefs.push([this.font(!!s.bold, s.size || 11, s.name || "Calibri", s.color || null),
+                      this.border(s.l, s.r, s.t, s.b), s.dec ? 2 : 0, this.fill(s.bg)]);
+    this.xfAlign.push(s.align || null);
+    this.xfs.set(key, id);
+    return id;
+  }
+  xml() {
+    let x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + '<fonts count="' + this.fontXml.length + '">' + this.fontXml.join("") + '</fonts>'
+      + '<fills count="' + this.fillXml.length + '">' + this.fillXml.join("") + '</fills>'
+      + '<borders count="' + this.borderXml.length + '">' + this.borderXml.join("") + '</borders>'
+      + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+      + '<cellXfs count="' + this.xfDefs.length + '">';
+    for (let i = 0; i < this.xfDefs.length; i++) {
+      const d = this.xfDefs[i], a = this.xfAlign[i];
+      x += '<xf numFmtId="' + d[2] + '" fontId="' + d[0] + '" fillId="' + d[3] + '" borderId="' + d[1] + '" xfId="0"'
+        + (d[2] ? ' applyNumberFormat="1"' : '') + (d[0] ? ' applyFont="1"' : '')
+        + (d[3] ? ' applyFill="1"' : '') + (d[1] ? ' applyBorder="1"' : '');
+      x += a ? ' applyAlignment="1"><alignment horizontal="' + a + '" vertical="center"/></xf>' : '/>';
+    }
+    x += '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+    return x;
+  }
+}
+
+class Sheet {
+  constructor(name) {
+    this.name = name; this.rows = new Map();
+    this.rowHeights = new Map(); this.colWidths = new Map(); this.merges = [];
+    this.showGridLines = true; this.fitToWidth = 0;
+    this.img = null;                     // {bytes, row, col, w, h}
+  }
+  cell(r, c, style) {
+    let row = this.rows.get(r);
+    if (!row) { row = new Map(); this.rows.set(r, row); }
+    let cell = row.get(c);
+    if (!cell) { cell = {}; row.set(c, cell); }
+    cell.style = style || {};
+    return cell;
+  }
+  str(r, c, v, s) { this.cell(r, c, s).text = v; }
+  num(r, c, v, s) { this.cell(r, c, s).number = v; }
+  formula(r, c, f, cached, s) { const cell = this.cell(r, c, s); cell.formula = f; cell.number = cached; }
+  blank(r, c, s) { this.cell(r, c, s); }
+  merge(r1, c1, r2, c2) { this.merges.push(ref(r1, c1) + ":" + ref(r2, c2)); }
+  image(bytes, row, col, w, h) { if (bytes && bytes.length) this.img = { bytes, row, col, w, h }; }
+}
+
+function sheetXml(sh, styles) {
+  let maxRow = 1, maxCol = 1;
+  for (const [r, row] of sh.rows) { if (r > maxRow) maxRow = r; for (const c of row.keys()) if (c > maxCol) maxCol = c; }
+
+  let x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+    + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+  if (sh.fitToWidth) x += '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>';
+  x += '<dimension ref="A1:' + ref(maxRow, maxCol) + '"/>'
+    + '<sheetViews><sheetView workbookViewId="0"' + (sh.showGridLines ? '' : ' showGridLines="0"') + '/></sheetViews>'
+    + '<sheetFormatPr defaultRowHeight="15"/>';
+
+  if (sh.colWidths.size) {
+    x += '<cols>';
+    for (const [c, w] of [...sh.colWidths].sort((a, b) => a[0] - b[0])) {
+      x += '<col min="' + c + '" max="' + c + '" width="' + w + '" customWidth="1"/>';
+    }
+    x += '</cols>';
+  }
+
+  x += '<sheetData>';
+  for (const r of [...sh.rows.keys()].sort((a, b) => a - b)) {
+    const row = sh.rows.get(r);
+    const h = sh.rowHeights.get(r);
+    x += '<row r="' + r + '"' + (h ? ' ht="' + h + '" customHeight="1"' : '') + '>';
+    for (const c of [...row.keys()].sort((a, b) => a - b)) {
+      const cell = row.get(c);
+      const sid = styles.idFor(cell.style || {});
+      x += '<c r="' + ref(r, c) + '"' + (sid ? ' s="' + sid + '"' : '');
+      if (cell.formula != null) {
+        x += '><f>' + escXml(cell.formula) + '</f>'
+          + (cell.number != null ? '<v>' + numOut(cell.number) + '</v>' : '') + '</c>';
+      } else if (cell.number != null) {
+        x += '><v>' + numOut(cell.number) + '</v></c>';
+      } else if (cell.text != null && cell.text !== "") {
+        x += ' t="inlineStr"><is><t xml:space="preserve">' + escXml(cell.text) + '</t></is></c>';
+      } else {
+        x += '/>';
+      }
+    }
+    x += '</row>';
+  }
+  x += '</sheetData>';
+
+  if (sh.merges.length) {
+    x += '<mergeCells count="' + sh.merges.length + '">';
+    for (const m of sh.merges) x += '<mergeCell ref="' + m + '"/>';
+    x += '</mergeCells>';
+  }
+  x += '<pageMargins left="0.4" right="0.3" top="0.4" bottom="0.4" header="0.3" footer="0.3"/>'
+    + '<pageSetup paperSize="9" orientation="landscape"'
+    + (sh.fitToWidth ? ' fitToWidth="1" fitToHeight="1"' : '') + '/>';
+  if (sh.img) x += '<drawing r:id="rIdDrawing"/>';
+  x += '</worksheet>';
+  return x;
+}
+
+function drawingXml(sh) {
+  const cx = Math.round(sh.img.w * 9525), cy = Math.round(sh.img.h * 9525);
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" '
+    + 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+    + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    + '<xdr:oneCellAnchor>'
+    + '<xdr:from><xdr:col>' + (sh.img.col - 1) + '</xdr:col><xdr:colOff>38100</xdr:colOff>'
+    + '<xdr:row>' + (sh.img.row - 1) + '</xdr:row><xdr:rowOff>28575</xdr:rowOff></xdr:from>'
+    + '<xdr:ext cx="' + cx + '" cy="' + cy + '"/>'
+    + '<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="1" name="Logo"/>'
+    + '<xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>'
+    + '<xdr:blipFill><a:blip r:embed="rIdImage"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>'
+    + '<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm>'
+    + '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr>'
+    + '</xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>';
+}
+
+function buildXlsx(sheets) {
+  const styles = new StyleTable();
+  const sheetXmls = sheets.map(s => sheetXml(s, styles));   // registers styles
+  const anyImage = sheets.some(s => s.img);
+
+  let ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+    + '<Default Extension="xml" ContentType="application/xml"/>'
+    + (anyImage ? '<Default Extension="png" ContentType="image/png"/>' : '')
+    + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+    + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>';
+  sheets.forEach((s, i) => {
+    ct += '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+    if (s.img) ct += '<Override PartName="/xl/drawings/drawing' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>';
+  });
+  ct += '</Types>';
+
+  const entries = [{ name: "[Content_Types].xml", content: ct }];
+
+  entries.push({
+    name: "_rels/.rels",
+    content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'
+  });
+
+  let wb = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+    + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>';
+  sheets.forEach((s, i) => {
+    wb += '<sheet name="' + escXml(s.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>';
+  });
+  wb += '</sheets><calcPr fullCalcOnLoad="1"/></workbook>';
+  entries.push({ name: "xl/workbook.xml", content: wb });
+
+  let rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+  sheets.forEach((s, i) => {
+    rels += '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>';
+  });
+  rels += '<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  entries.push({ name: "xl/_rels/workbook.xml.rels", content: rels });
+  entries.push({ name: "xl/styles.xml", content: styles.xml() });
+
+  sheetXmls.forEach((x, i) => {
+    const n = i + 1;
+    entries.push({ name: "xl/worksheets/sheet" + n + ".xml", content: x });
+    const sh = sheets[i];
+    if (!sh.img) return;
+    entries.push({
+      name: "xl/worksheets/_rels/sheet" + n + ".xml.rels",
+      content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        + '<Relationship Id="rIdDrawing" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing' + n + '.xml"/>'
+        + '</Relationships>'
+    });
+    entries.push({ name: "xl/drawings/drawing" + n + ".xml", content: drawingXml(sh) });
+    entries.push({
+      name: "xl/drawings/_rels/drawing" + n + ".xml.rels",
+      content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        + '<Relationship Id="rIdImage" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image' + n + '.png"/>'
+        + '</Relationships>'
+    });
+    entries.push({ name: "xl/media/image" + n + ".png", bytes: sh.img.bytes });
+  });
+
+  return zipFiles(entries);
+}
+
+/* ══════════════════════ the weighment layout ══════════════════════ */
+
+const LOGO_PNG_B64 = "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"
+  + "SUVORK5CYII=";
+
+const FILL_HEAD = "14506F", FILL_BAGNO = "DCEEF6", FILL_SUBTOTAL = "F2DCDB",
+      FILL_INFO = "F2F5F7", FILL_NET = "FDE9D9";
+const THIN = "thin", MEDIUM = "medium";
+
+const ROW_TITLE = 1, ROW_INFO1 = 2, ROW_INFO2 = 3;
+const BLOCK1_HEAD = 5, BLOCK1_TOP = 6, BLOCK1_SUM = 16;
+const BLOCK2_HEAD = 18, BLOCK2_TOP = 19, BLOCK2_SUM = 29;
+const PANEL_HEAD = 5, PANEL_FIRST = 6, PANEL_TOTAL = 16;
+const PANEL_GROSS = 18, PANEL_TARE = 19, PANEL_NET = 20, PANEL_CHECK = 22;
+const COL_O = 15, COL_Q = 17, COL_R = 18, COL_S = 19, COL_T = 20, COL_U = 21;
+
+const clean = v => Math.round(v * 10000) / 10000;
+const two = v => (Math.round(v * 100) / 100).toFixed(2);
+
+function generateWorkbook(p, gross) {
+  const sheetCount = Math.max(1, Math.ceil(p.totalBags / 100));
+  const sheets = [];
+  let prev = null;
+  for (let si = 0; si < sheetCount; si++) {
+    const first = si * 100 + 1;
+    const name = first + "-" + (first + 99);
+    const sh = new Sheet(name);
+    buildSheet(sh, p, gross, si, prev);
+    sheets.push(sh);
+    prev = name;
+  }
+  return buildXlsx(sheets);
+}
+
+function buildSheet(sh, p, gross, sheetIdx, prevSheet) {
+  const widths = [4.6, 9.2, 9.2, 4.6, 9.2, 9.2, 4.6, 9.2, 9.2, 4.6, 9.2, 9.2,
+                  4.6, 9.2, 9.2, 2.4, 10.4, 6.0, 6.0, 10.4, 2.6];
+  widths.forEach((w, i) => sh.colWidths.set(i + 1, w));
+  sh.rowHeights.set(1, 51); sh.rowHeights.set(2, 19.5); sh.rowHeights.set(3, 19.5);
+  sh.rowHeights.set(4, 7.5); sh.rowHeights.set(17, 7.5);
+  for (let r = BLOCK1_HEAD; r <= BLOCK2_SUM; r++) if (r !== 17) sh.rowHeights.set(r, 18.75);
+  sh.rowHeights.set(BLOCK1_HEAD, 21); sh.rowHeights.set(BLOCK2_HEAD, 21);
+  sh.showGridLines = false;
+  sh.fitToWidth = 1;
+
+  header(sh, p);
+
+  const firstBag = sheetIdx * 100 + 1;
+  const gTot = new Array(10).fill(0), nTot = new Array(10).fill(0), used = new Array(10).fill(false);
+
+  blockHeader(sh, BLOCK1_HEAD);
+  block(sh, p, gross, firstBag, BLOCK1_TOP, BLOCK1_SUM, 0, gTot, nTot, used);
+  blockHeader(sh, BLOCK2_HEAD);
+  block(sh, p, gross, firstBag + 50, BLOCK2_TOP, BLOCK2_SUM, 5, gTot, nTot, used);
+
+  summaryPanel(sh, p, sheetIdx, prevSheet, gTot, nTot, used, gross);
+}
+
+function header(sh, p) {
+  sh.image(base64ToBytes(LOGO_PNG_B64), ROW_TITLE, 1, 205, 60);
+
+  sh.str(ROW_TITLE, 6, "WEIGHMENT SHEET", { bold: true, size: 20, align: "center" });
+  sh.merge(ROW_TITLE, 6, ROW_TITLE, COL_O);
+  sh.str(ROW_TITLE, COL_Q, "DATE : " + (p.date || ""), { bold: true, size: 10, align: "right" });
+  sh.merge(ROW_TITLE, COL_Q, ROW_TITLE, COL_U);
+
+  info(sh, ROW_INFO1, 1, 3, "SR NO : " + (p.seqNo || ""));
+  info(sh, ROW_INFO1, 4, 6, "COUNT : " + (p.count || ""));
+  info(sh, ROW_INFO1, 7, 9, "LOT NO : " + (p.lotNo || ""));
+  info(sh, ROW_INFO1, 10, COL_O, "VEHICLE NO : " + (p.vehicleNo || ""));
+  info(sh, ROW_INFO1, COL_Q, COL_U, "TOTAL BAGS : " + p.totalBags);
+
+  info(sh, ROW_INFO2, 1, 3, "TARE / BAG : " + two(p.tarePerBag));
+  info(sh, ROW_INFO2, 4, 6, "NET = GROSS − TARE");
+  info(sh, ROW_INFO2, 7, COL_O, "");
+  info(sh, ROW_INFO2, COL_Q, COL_U, "WEIGHTS IN KG");
+}
+
+function info(sh, row, c1, c2, text) {
+  const s = { bold: true, size: 10.5, bg: FILL_INFO, align: "left",
+              l: THIN, r: THIN, t: THIN, b: THIN };
+  sh.str(row, c1, text, s);
+  for (let c = c1 + 1; c <= c2; c++) sh.blank(row, c, s);
+  if (c2 > c1) sh.merge(row, c1, row, c2);
+}
+
+function blockHeader(sh, row) {
+  const head = { bold: true, size: 9.5, bg: FILL_HEAD, color: "FFFFFF", align: "center",
+                 l: THIN, r: THIN, t: THIN, b: THIN };
+  for (let g = 0; g < 5; g++) {
+    const c = 1 + g * 3;
+    sh.str(row, c, "NO", head);
+    sh.str(row, c + 1, "GROSS", head);
+    sh.str(row, c + 2, "NET", Object.assign({}, head, { r: MEDIUM }));
+  }
+}
+
+function block(sh, p, gross, firstBagOfBlock, topRow, sumRow, groupOffset, gTot, nTot, used) {
+  const bagNo = { bold: true, size: 10, bg: FILL_BAGNO, align: "center", l: THIN, r: THIN, t: THIN, b: THIN };
+  const weight = { dec: true, align: "right", l: THIN, r: THIN, t: THIN, b: THIN };
+  const weightEnd = Object.assign({}, weight, { r: MEDIUM });
+  const sub = { bold: true, size: 11, dec: true, align: "right", bg: FILL_SUBTOTAL, l: THIN, r: THIN, t: THIN, b: THIN };
+  const subEnd = Object.assign({}, sub, { r: MEDIUM });
+  const subLabel = { bold: true, size: 8, bg: FILL_SUBTOTAL, align: "center", l: THIN, r: THIN, t: THIN, b: THIN };
+
+  for (let g = 0; g < 5; g++) {
+    const cNo = 1 + g * 3, cG = cNo + 1, cN = cNo + 2;
+    let gs = 0, ns = 0, any = false;
+
+    for (let i = 0; i < 10; i++) {
+      const row = topRow + i;
+      const bag = firstBagOfBlock + g * 10 + i;
+      sh.num(row, cNo, bag, bagNo);
+
+      const w = (bag >= 1 && bag <= gross.length) ? gross[bag - 1] : null;
+      if (w != null) {
+        const net = clean(w - p.tarePerBag);
+        sh.num(row, cG, w, weight);
+        sh.formula(row, cN, "+" + ref(row, cG) + "-" + trimNum(p.tarePerBag), net, weightEnd);
+        gs += w; ns += net; any = true;
+      } else {
+        sh.blank(row, cG, weight);
+        sh.blank(row, cN, weightEnd);
+      }
+    }
+
+    gs = clean(gs); ns = clean(ns);
+    gTot[groupOffset + g] = gs; nTot[groupOffset + g] = ns; used[groupOffset + g] = any;
+
+    sh.str(sumRow, cNo, any ? "TOT" : "", subLabel);
+    if (any) {
+      sh.formula(sumRow, cG, "SUM(" + ref(topRow, cG) + ":" + ref(topRow + 9, cG) + ")", gs, sub);
+      sh.formula(sumRow, cN, "SUM(" + ref(topRow, cN) + ":" + ref(topRow + 9, cN) + ")", ns, subEnd);
+    } else {
+      sh.blank(sumRow, cG, sub);
+      sh.blank(sumRow, cN, subEnd);
+    }
+  }
+}
+
+function summaryPanel(sh, p, sheetIdx, prevSheet, gTot, nTot, used, gross) {
+  const head = { bold: true, size: 9.5, bg: FILL_HEAD, color: "FFFFFF", align: "center",
+                 l: THIN, r: THIN, t: THIN, b: THIN };
+  sh.str(PANEL_HEAD, COL_Q, "BAGS", head);
+  sh.str(PANEL_HEAD, COL_R, "GROSS", head);
+  sh.blank(PANEL_HEAD, COL_S, head);
+  sh.merge(PANEL_HEAD, COL_R, PANEL_HEAD, COL_S);
+  sh.str(PANEL_HEAD, COL_T, "NET", head);
+  sh.blank(PANEL_HEAD, COL_U, head);
+  sh.merge(PANEL_HEAD, COL_T, PANEL_HEAD, COL_U);
+
+  const range = { size: 10, align: "center", bg: FILL_BAGNO, l: THIN, r: THIN, t: THIN, b: THIN };
+  const value = { dec: true, align: "right", l: THIN, r: THIN, t: THIN, b: THIN };
+  const valueBold = Object.assign({}, value, { bold: true });
+
+  const firstBag = sheetIdx * 100 + 1;
+  for (let i = 0; i < 10; i++) {
+    const row = PANEL_FIRST + i;
+    const from = firstBag + i * 10;
+    sh.str(row, COL_Q, from + "-" + (from + 9), range);
+
+    const srcRow = i < 5 ? BLOCK1_SUM : BLOCK2_SUM;
+    const grp = i < 5 ? i : i - 5;
+
+    if (used[i]) sh.formula(row, COL_R, "+" + ref(srcRow, 2 + grp * 3), gTot[i], value);
+    else sh.blank(row, COL_R, value);
+    sh.blank(row, COL_S, value);
+    sh.merge(row, COL_R, row, COL_S);
+
+    if (used[i]) sh.formula(row, COL_T, "+" + ref(srcRow, 3 + grp * 3), nTot[i], valueBold);
+    else sh.blank(row, COL_T, valueBold);
+    sh.blank(row, COL_U, valueBold);
+    sh.merge(row, COL_T, row, COL_U);
+  }
+
+  let sheetGross = 0, sheetNet = 0;
+  for (let i = 0; i < 10; i++) { sheetGross += gTot[i]; sheetNet += nTot[i]; }
+  sheetGross = clean(sheetGross); sheetNet = clean(sheetNet);
+
+  const totalLabel = { bold: true, size: 9.5, bg: FILL_SUBTOTAL, align: "center", l: THIN, r: THIN, t: THIN, b: THIN };
+  const total = { bold: true, size: 11, dec: true, align: "right", bg: FILL_SUBTOTAL, l: THIN, r: THIN, t: THIN, b: THIN };
+
+  sh.str(PANEL_TOTAL, COL_Q, "TOTAL", totalLabel);
+  sh.formula(PANEL_TOTAL, COL_R, "SUM(" + ref(PANEL_FIRST, COL_R) + ":" + ref(PANEL_FIRST + 9, COL_S) + ")", sheetGross, total);
+  sh.blank(PANEL_TOTAL, COL_S, total);
+  sh.merge(PANEL_TOTAL, COL_R, PANEL_TOTAL, COL_S);
+  sh.formula(PANEL_TOTAL, COL_T, "SUM(" + ref(PANEL_FIRST, COL_T) + ":" + ref(PANEL_FIRST + 9, COL_T) + ")", sheetNet, total);
+  sh.blank(PANEL_TOTAL, COL_U, total);
+  sh.merge(PANEL_TOTAL, COL_T, PANEL_TOTAL, COL_U);
+
+  const bagsSoFar = Math.min((sheetIdx + 1) * 100, p.totalBags);
+  const upto = (sheetIdx + 1) * 100;
+  let cumGross = 0, cumNet = 0;
+  for (let i = 0; i < Math.min(upto, gross.length); i++) { cumGross += gross[i]; cumNet += clean(gross[i] - p.tarePerBag); }
+  cumGross = clean(cumGross); cumNet = clean(cumNet);
+  const totalTare = clean(bagsSoFar * p.tarePerBag);
+
+  const grossFormula = prevSheet
+    ? "+" + ref(PANEL_TOTAL, COL_R) + "+'" + prevSheet + "'!" + ref(PANEL_GROSS, COL_T)
+    : "+" + ref(PANEL_TOTAL, COL_R);
+  bigRow(sh, PANEL_GROSS, "GROSS WEIGHT", grossFormula, cumGross, null);
+
+  const tareLabel = { bold: true, size: 10.5, align: "left", l: MEDIUM, r: THIN, t: THIN, b: THIN };
+  const tareCell = { bold: true, size: 10.5, align: "center", l: THIN, r: THIN, t: THIN, b: THIN };
+  const tareValue = { bold: true, size: 12, dec: true, align: "right", l: THIN, r: MEDIUM, t: THIN, b: THIN };
+
+  sh.str(PANEL_TARE, COL_Q, "TARE", tareLabel);
+  sh.num(PANEL_TARE, COL_R, bagsSoFar, tareCell);
+  sh.num(PANEL_TARE, COL_S, p.tarePerBag, tareCell);
+  sh.formula(PANEL_TARE, COL_T, ref(PANEL_TARE, COL_R) + "*" + ref(PANEL_TARE, COL_S), totalTare, tareValue);
+  sh.blank(PANEL_TARE, COL_U, tareValue);
+  sh.merge(PANEL_TARE, COL_T, PANEL_TARE, COL_U);
+
+  bigRow(sh, PANEL_NET, "NET WEIGHT",
+         ref(PANEL_GROSS, COL_T) + "-" + ref(PANEL_TARE, COL_T),
+         clean(cumGross - totalTare), FILL_NET);
+
+  const checkFormula = prevSheet
+    ? "+" + ref(PANEL_TOTAL, COL_T) + "+'" + prevSheet + "'!" + ref(PANEL_CHECK, COL_T)
+    : "+" + ref(PANEL_TOTAL, COL_T);
+  sh.str(PANEL_CHECK, COL_Q, "net from subtotals", { size: 9, align: "left" });
+  sh.blank(PANEL_CHECK, COL_R, { size: 9 });
+  sh.merge(PANEL_CHECK, COL_Q, PANEL_CHECK, COL_S);
+  sh.formula(PANEL_CHECK, COL_T, checkFormula, cumNet, { size: 9, dec: true, align: "right" });
+  sh.merge(PANEL_CHECK, COL_T, PANEL_CHECK, COL_U);
+}
+
+function bigRow(sh, row, label, formula, cached, fill) {
+  const labelStyle = { bold: true, size: 11, align: "left", l: MEDIUM, r: THIN, t: THIN, b: THIN, bg: fill };
+  const pad = { l: THIN, r: THIN, t: THIN, b: THIN, bg: fill };
+  const valueStyle = { bold: true, size: 13, dec: true, align: "right", l: THIN, r: MEDIUM, t: THIN, b: THIN, bg: fill };
+
+  sh.str(row, COL_Q, label, labelStyle);
+  sh.blank(row, COL_R, pad);
+  sh.blank(row, COL_S, pad);
+  sh.merge(row, COL_Q, row, COL_S);
+  sh.formula(row, COL_T, formula, cached, valueStyle);
+  sh.blank(row, COL_U, valueStyle);
+  sh.merge(row, COL_T, row, COL_U);
+}
+
+function trimNum(v) { return Number.isInteger(v) ? String(v) : String(Math.round(v * 10000) / 10000); }
+
+/* ══════════════════════ stored loads ══════════════════════ */
+
+const STORE_KEY = "bagWeigher.v2";
+const LEGACY_KEY = "bagWeigher.session.v1";
+
+/* store = { currentId, loads: [ load ] }
+   load  = { id, createdAt, updatedAt, finished,
+             count, lotNo, vehicleNo, date, totalBags, tarePerBag, gross:[] }   */
+
+let S = null;              // the load being worked on
+let viewingId = null;      // the load shown on the summary screen
+
+const $ = id => document.getElementById(id);
+const fmt = v => (Math.round(v * 100) / 100).toFixed(2);
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+function readStore() {
+  let store = { currentId: null, loads: [] };
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) store = JSON.parse(raw);
+  } catch (e) { /* corrupt or private mode */ }
+  if (!store || typeof store !== "object") store = { currentId: null, loads: [] };
+  if (!Array.isArray(store.loads)) store.loads = [];
+
+  // carry over a session saved by the first version of this app
+  try {
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if (legacy) {
+      const old = JSON.parse(legacy);
+      if (old && old.totalBags) {
+        const load = normalise(old);
+        load.id = newId();
+        load.createdAt = load.updatedAt = Date.now();
+        load.finished = false;
+        store.loads.push(load);
+        store.currentId = load.id;
+      }
+      localStorage.removeItem(LEGACY_KEY);
+      writeStore(store);
+    }
+  } catch (e) { /* ignore */ }
+  return store;
+}
+
+function writeStore(store) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+  catch (e) { toast("Could not save — phone storage is full or blocked"); }
+}
+
+function normalise(o) {
+  return {
+    id: o.id || newId(),
+    createdAt: o.createdAt || Date.now(),
+    updatedAt: o.updatedAt || Date.now(),
+    finished: !!o.finished,
+    seqNo: Number(o.seqNo) || 0,
+    count: o.count || "",
+    lotNo: o.lotNo || "",
+    vehicleNo: o.vehicleNo || "",
+    date: o.date || "",
+    totalBags: Number(o.totalBags) || 0,
+    tarePerBag: Number(o.tarePerBag) || 0,
+    gross: Array.isArray(o.gross) ? o.gross.map(Number).filter(n => isFinite(n)) : []
+  };
+}
+
+/** writes S back into the store */
+function persist() {
+  if (!S) return;
+  S.updatedAt = Date.now();
+  const store = readStore();
+  const i = store.loads.findIndex(l => l.id === S.id);
+  if (i >= 0) store.loads[i] = S; else store.loads.push(S);
+  store.currentId = S.finished ? null : S.id;
+  writeStore(store);
+}
+
+function getLoad(id) {
+  return readStore().loads.find(l => l.id === id) || null;
+}
+
+function deleteLoad(id) {
+  const store = readStore();
+  store.loads = store.loads.filter(l => l.id !== id);
+  if (store.currentId === id) store.currentId = null;
+  writeStore(store);
+}
+
+/** year a load belongs to, taken from its dd.MM.yyyy date */
+function yearOf(l) {
+  const t = String(l.date || "").trim();
+  const y = parseInt(t.slice(-4), 10);
+  return isFinite(y) && y > 1900 ? y : new Date(l.createdAt || Date.now()).getFullYear();
+}
+
+/** next sheet number for a year — numbering restarts every January */
+function nextSeqNo(year) {
+  let max = 0;
+  for (const l of readStore().loads) if (yearOf(l) === year && (l.seqNo || 0) > max) max = l.seqNo;
+  return max + 1;
+}
+
+function loadsNewestFirst() {
+  return readStore().loads.slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+}
+
+/* ══════════════════════ helpers ══════════════════════ */
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+const grossOf = l => clean((l.gross || []).reduce((a, b) => a + b, 0));
+const tareOf  = l => clean((l.gross || []).length * l.tarePerBag);
+const netOf   = l => clean(grossOf(l) - tareOf(l));
+
+function fileNameOf(l) {
+  const safe = s => String(s || "").trim().replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, "_");
+  let n = l.seqNo ? String(l.seqNo) : safe(l.count);
+  if (l.date) n += "_" + safe(l.date);
+  n += "_" + l.totalBags + "_Bags.xlsx";
+  return n.replace(/^_/, "");
+}
+
+function todayText() {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + d.getFullYear();
+}
+
+function titleOf(l) {
+  return [l.seqNo ? "#" + l.seqNo : "", l.count, l.lotNo ? "Lot " + l.lotNo : "", l.vehicleNo]
+    .filter(Boolean).join("  ·  ");
+}
+
+/* ══════════════════════ load screen ══════════════════════ */
+
+function refreshResumeBanner() {
+  const store = readStore();
+  const open = store.currentId ? store.loads.find(l => l.id === store.currentId) : null;
+  const banner = $("resumeBanner");
+  if (!open) { banner.style.display = "none"; return; }
+  banner.style.display = "block";
+  $("resumeText").textContent = "Load in progress: " + titleOf(open)
+    + " — " + open.gross.length + " of " + open.totalBags + " bags weighed.";
+}
+
+$("startBtn").onclick = () => {
+  const count = $("count").value.trim();
+  const lot = $("lot").value.trim();
+  const vehicle = $("vehicle").value.trim();
+  const date = $("date").value.trim();
+  const bags = parseInt($("bags").value, 10);
+  const tare = parseFloat($("tare").value);
+  const err = $("loadErr");
+
+  if (!count) { err.textContent = "Count is required."; $("count").focus(); return; }
+  if (!lot) { err.textContent = "Lot No is required."; $("lot").focus(); return; }
+  if (!vehicle) { err.textContent = "Vehicle No is required."; $("vehicle").focus(); return; }
+  if (!(bags > 0 && bags <= 100000)) { err.textContent = "Enter the number of bags (1–100000)."; $("bags").focus(); return; }
+  if (!(tare >= 0)) { err.textContent = "Enter the tare weight per bag."; $("tare").focus(); return; }
+  if (!date) { err.textContent = "Date is required."; $("date").focus(); return; }
+  err.textContent = "";
+
+  S = normalise({
+    seqNo: nextSeqNo(new Date().getFullYear()),
+    count: count,
+    lotNo: lot,
+    vehicleNo: vehicle,
+    date: date,
+    totalBags: bags,
+    tarePerBag: tare,
+    gross: []
+  });
+  persist();
+  openEntry();
+};
+
+$("resumeBtn").onclick = () => {
+  const store = readStore();
+  const open = store.loads.find(l => l.id === store.currentId);
+  if (open) { S = open; openEntry(); }
+};
+
+$("discardBtn").onclick = () => {
+  const store = readStore();
+  if (!store.currentId) return;
+  if (!confirm("Discard the load in progress? The weights entered will be deleted.")) return;
+  deleteLoad(store.currentId);
+  S = null;
+  refreshResumeBanner();
+  toast("Load discarded");
+};
+
+$("historyBtn").onclick = () => openHistory();
+
+function showNextSeq() {
+  $("nextSeq").textContent = "Sheet no. " + nextSeqNo(new Date().getFullYear())
+    + "  ·  numbered automatically";
+}
+
+function clearForm() {
+  ["count", "lot", "vehicle", "bags", "tare"].forEach(id => $(id).value = "");
+  $("date").value = todayText();
+  showNextSeq();
+  $("loadErr").textContent = "";
+}
+
+/* ══════════════════════ entry screen ══════════════════════ */
+
+function openEntry() {
+  show("screen-entry");
+  renderList();
+  refreshEntry();
+  $("gross").focus();
+}
+
+function refreshEntry() {
+  $("entryHeader").textContent = titleOf(S);
+  const next = Math.min(S.gross.length + 1, S.totalBags);
+  $("entryBagNo").textContent = "Bag " + next + " of " + S.totalBags;
+  $("entryTotals").textContent = "Weighed " + S.gross.length + "/" + S.totalBags
+    + "  ·  Gross " + fmt(grossOf(S)) + "  ·  Tare " + fmt(tareOf(S)) + "  ·  Net " + fmt(netOf(S));
+  $("finishBtn").textContent = S.gross.length >= S.totalBags ? "Generate sheet" : "Finish early";
+  persist();
+}
+
+function renderList() {
+  const rows = [];
+  for (let i = S.gross.length - 1; i >= 0; i--) {
+    rows.push('<div class="trow" data-i="' + i + '"><span class="c1">' + (i + 1)
+      + '</span><span class="c2">' + fmt(S.gross[i])
+      + '</span><span class="c3">' + fmt(clean(S.gross[i] - S.tarePerBag)) + '</span></div>');
+  }
+  $("list").innerHTML = rows.join("");
+}
+
+function addWeight() {
+  const input = $("gross");
+  const v = parseFloat(String(input.value).replace(",", "."));
+  if (!(v > 0)) { toast("Enter a valid weight"); input.focus(); return; }
+  if (S.gross.length >= S.totalBags) { toast("All " + S.totalBags + " bags are weighed"); return; }
+  if (v < S.tarePerBag) toast("Careful: that gross weight is below the tare");
+
+  S.gross.push(v);
+  input.value = "";
+  $("preview").textContent = "";
+  renderList();
+  refreshEntry();
+  input.focus();
+  if (S.gross.length === S.totalBags) toast("All bags weighed — generate the sheet");
+}
+
+$("addBtn").onclick = addWeight;
+$("gross").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addWeight(); } });
+$("gross").addEventListener("input", () => {
+  const v = parseFloat(String($("gross").value).replace(",", "."));
+  $("preview").textContent = isFinite(v)
+    ? "Net = " + fmt(v) + " − " + fmt(S.tarePerBag) + " = " + fmt(clean(v - S.tarePerBag))
+    : "";
+});
+
+$("undoBtn").onclick = () => {
+  if (!S.gross.length) return;
+  S.gross.pop();
+  renderList(); refreshEntry();
+  toast("Last bag removed");
+};
+
+let editIndex = -1;
+$("list").addEventListener("click", e => {
+  const row = e.target.closest(".trow");
+  if (!row) return;
+  editIndex = parseInt(row.dataset.i, 10);
+  $("editTitle").textContent = "Bag " + (editIndex + 1);
+  $("editInput").value = S.gross[editIndex];
+  $("editDlg").showModal();
+});
+$("editCancel").onclick = () => $("editDlg").close();
+$("editDelete").onclick = () => {
+  S.gross.splice(editIndex, 1);
+  $("editDlg").close(); renderList(); refreshEntry();
+};
+$("editSave").onclick = () => {
+  const v = parseFloat(String($("editInput").value).replace(",", "."));
+  if (!(v > 0)) { toast("Enter a valid weight"); return; }
+  S.gross[editIndex] = v;
+  $("editDlg").close(); renderList(); refreshEntry();
+};
+
+$("finishBtn").onclick = () => {
+  if (!S.gross.length) { toast("Weigh at least one bag first"); return; }
+  if (S.gross.length < S.totalBags &&
+      !confirm("Only " + S.gross.length + " of " + S.totalBags + " bags are weighed. Generate the sheet anyway?")) return;
+  S.finished = true;
+  persist();
+  openSummary(S.id);
+};
+
+/* ══════════════════════ summary screen ══════════════════════ */
+
+function openSummary(id) {
+  const l = getLoad(id);
+  if (!l) { openHistory(); return; }
+  viewingId = id;
+  show("screen-summary");
+  $("sumHeader").textContent = titleOf(l);
+  $("sumBags").textContent = l.gross.length + " of " + l.totalBags + " bags weighed  ·  " + l.date;
+  $("sumGross").textContent = fmt(grossOf(l));
+  $("sumTare").textContent = fmt(tareOf(l));
+  $("sumNet").textContent = fmt(netOf(l));
+  $("fileName").textContent = fileNameOf(l);
+}
+
+function workbookBlob(l) {
+  const bytes = generateWorkbook({
+    seqNo: l.seqNo ? String(l.seqNo) : "",
+    count: l.count, lotNo: l.lotNo, vehicleNo: l.vehicleNo, date: l.date,
+    totalBags: l.totalBags, tarePerBag: l.tarePerBag
+  }, l.gross);
+  return new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+$("downloadBtn").onclick = () => {
+  const l = getLoad(viewingId);
+  if (!l) return;
+  try {
+    downloadBlob(workbookBlob(l), fileNameOf(l));
+    toast("Saved to your Downloads");
+  } catch (e) { toast("Could not generate: " + e.message); }
+};
+
+$("shareBtn").onclick = async () => {
+  const l = getLoad(viewingId);
+  if (!l) return;
+  try {
+    const blob = workbookBlob(l);
+    const file = new File([blob], fileNameOf(l), { type: blob.type });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: fileNameOf(l) });
+    } else {
+      downloadBlob(blob, fileNameOf(l));
+      toast("Sharing needs https — the file was downloaded instead");
+    }
+  } catch (e) {
+    if (e && e.name !== "AbortError") toast("Could not share: " + e.message);
+  }
+};
+
+$("backBtn").onclick = () => {
+  const l = getLoad(viewingId);
+  if (!l) return;
+  S = l;
+  openEntry();
+};
+
+$("duplicateBtn").onclick = () => {
+  const l = getLoad(viewingId);
+  if (!l) return;
+  S = normalise({
+    seqNo: nextSeqNo(new Date().getFullYear()),
+    count: l.count, lotNo: l.lotNo, vehicleNo: l.vehicleNo,
+    date: todayText(), totalBags: l.totalBags, tarePerBag: l.tarePerBag, gross: []
+  });
+  persist();
+  toast("New load with the same details");
+  openEntry();
+};
+
+$("deleteBtn").onclick = () => {
+  const l = getLoad(viewingId);
+  if (!l) return;
+  if (!confirm("Delete this load?\n\n" + titleOf(l) + "\n" + l.date
+      + "\n\nThe .xlsx files you already downloaded are not affected.")) return;
+  deleteLoad(l.id);
+  if (S && S.id === l.id) S = null;
+  toast("Load deleted");
+  openHistory();
+};
+
+$("toHistoryBtn").onclick = () => openHistory();
+
+$("newLoadBtn").onclick = () => {
+  S = null;
+  clearForm();
+  refreshResumeBanner();
+  show("screen-load");
+};
+
+/* ══════════════════════ history screen ══════════════════════ */
+
+function openHistory() {
+  show("screen-history");
+  renderHistory();
+}
+
+function renderHistory() {
+  const loads = loadsNewestFirst();
+  if (!loads.length) {
+    $("historyList").innerHTML = '<div class="empty">No loads saved yet.</div>';
+    return;
+  }
+  $("historyList").innerHTML = loads.map(l => {
+    const done = l.finished && l.gross.length >= l.totalBags;
+    const chip = done
+      ? '<span class="chip done">COMPLETED</span>'
+      : '<span class="chip open">IN PROGRESS</span>';
+    return '<div class="loadrow" data-id="' + l.id + '">'
+      + '<button class="rowdel" data-del="' + l.id + '" title="Delete this load">✕</button>'
+      + '<div class="t" style="padding-right:34px">' + escapeHtml(titleOf(l) || "(no name)") + chip + '</div>'
+      + '<div class="m">' + escapeHtml(l.date) + '  ·  ' + l.gross.length + ' of ' + l.totalBags
+      + ' bags  ·  tare ' + fmt(l.tarePerBag) + '</div>'
+      + '<div class="n">Net ' + fmt(netOf(l)) + '  <span style="color:var(--muted);font-weight:400">'
+      + '(gross ' + fmt(grossOf(l)) + ')</span></div>'
+      + '</div>';
+  }).join("");
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g,
+    c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+$("historyList").addEventListener("click", e => {
+  const del = e.target.closest(".rowdel");
+  if (del) {
+    const l = getLoad(del.dataset.del);
+    if (!l) return;
+    if (!confirm("Delete this load?\n\n" + titleOf(l) + "\n" + l.date
+        + "\n\nThe .xlsx files you already downloaded are not affected.")) return;
+    deleteLoad(l.id);
+    if (S && S.id === l.id) S = null;
+    renderHistory();
+    refreshResumeBanner();
+    toast("Load deleted");
+    return;
+  }
+  const row = e.target.closest(".loadrow");
+  if (!row) return;
+  const l = getLoad(row.dataset.id);
+  if (!l) return;
+  if (!l.gross.length) { S = l; openEntry(); return; }
+  openSummary(l.id);
+});
+
+$("historyHomeBtn").onclick = () => {
+  clearForm();
+  refreshResumeBanner();
+  show("screen-load");
+};
+
+/* ---------- backup / restore ---------- */
+
+$("backupBtn").onclick = () => {
+  const store = readStore();
+  if (!store.loads.length) { toast("Nothing to back up yet"); return; }
+  const payload = {
+    app: "bag-weight-calculator",
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    loads: store.loads
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 1)], { type: "application/json" });
+  downloadBlob(blob, "bag-weighments-backup-" + todayText().replace(/\./g, "-") + ".json");
+  toast(store.loads.length + " loads backed up to Downloads");
+};
+
+$("restoreBtn").onclick = () => $("restoreFile").click();
+
+$("restoreFile").addEventListener("change", e => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(String(reader.result));
+      const incoming = Array.isArray(data) ? data : (data && data.loads);
+      if (!Array.isArray(incoming)) throw new Error("that file has no loads in it");
+
+      const store = readStore();
+      let added = 0, updated = 0;
+      incoming.forEach(raw => {
+        const l = normalise(raw);
+        if (!l.totalBags) return;
+        const i = store.loads.findIndex(x => x.id === l.id);
+        if (i >= 0) {
+          if ((l.updatedAt || 0) >= (store.loads[i].updatedAt || 0)) { store.loads[i] = l; updated++; }
+        } else {
+          store.loads.push(l); added++;
+        }
+      });
+      writeStore(store);
+      renderHistory();
+      toast("Restored: " + added + " new, " + updated + " updated");
+    } catch (err) {
+      toast("Could not read that backup — " + err.message);
+    }
+    e.target.value = "";
+  };
+  reader.onerror = () => { toast("Could not read that file"); e.target.value = ""; };
+  reader.readAsText(file);
+});
+
+/* ══════════════════════ installing as an app ══════════════════════ */
+
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const IS_STANDALONE = window.matchMedia("(display-mode: standalone)").matches
+  || window.navigator.standalone === true;
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* still usable online */ });
+  });
+}
+
+// iPhone has no install button — it happens through the Safari share sheet
+if (IS_IOS && !IS_STANDALONE) {
+  let hide = "0";
+  try { hide = localStorage.getItem("bagWeigher.hideInstallHint") || "0"; } catch (e) { }
+  if (hide !== "1") $("installHint").style.display = "block";
+}
+$("installDismiss").onclick = () => {
+  $("installHint").style.display = "none";
+  try { localStorage.setItem("bagWeigher.hideInstallHint", "1"); } catch (e) { }
+};
+
+// on iPhone, sharing is how a file reaches Files or WhatsApp, so lead with it
+if (IS_IOS) {
+  const share = $("shareBtn"), download = $("downloadBtn");
+  download.textContent = "Save to Files";
+  share.classList.remove("accent");
+  share.classList.add("primary");
+  download.classList.remove("primary");
+  download.classList.add("ghost");
+  download.style.width = "100%";
+  share.parentNode.insertBefore(share, download);
+  share.style.marginTop = "20px";
+  download.style.marginTop = "10px";
+}
+
+/* ══════════════════════ boot ══════════════════════ */
+
+$("date").value = todayText();
+showNextSeq();
+refreshResumeBanner();
+
+// exposed so the generator can be checked from a test harness
+window.__generateWorkbook = generateWorkbook;
+</script>
+</body>
+</html>
